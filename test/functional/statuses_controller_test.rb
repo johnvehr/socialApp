@@ -11,14 +11,27 @@ class StatusesControllerTest < ActionController::TestCase
     assert_not_nil assigns(:statuses)
   end
 
-  test "should get new" do
+  test "should be redirected when not logged in" do
+    get :new
+    assert_response :success
+    assert_redirected_to new_user_session_path
+  end
+
+  test "should render the new page when logged in" do 
+    sign_in users(:john)
     get :new
     assert_response :success
   end
 
+  test "should be logged in to post a status" do
+    post :create, status: {content: "Hello"}
+    assert_response :redirect
+    assert_redirected_to new_user_session_path
+  end
+
   test "should create status" do
     assert_difference('Status.count') do
-      post :create, status: { content: @status.content, name: @status.name }
+      post :create, status: { content: @status.content}
     end
 
     assert_redirected_to status_path(assigns(:status))
@@ -29,14 +42,16 @@ class StatusesControllerTest < ActionController::TestCase
     assert_response :success
   end
 
-  test "should get edit" do
+  test "should get edit when logged in" do
+    sign_in users(:john)
     get :edit, id: @status
     assert_response :success
   end
 
-  test "should update status" do
-    put :update, id: @status, status: { content: @status.content, name: @status.name }
-    assert_redirected_to status_path(assigns(:status))
+  test "should redirect status update when not logged in" do
+    put :update, id: @status, status: { content: @status.content }
+    assert_response :redirect
+    assert_redirected_to new_user_session_path
   end
 
   test "should destroy status" do
